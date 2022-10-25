@@ -13,7 +13,6 @@ import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.Path;
 import org.graphstream.graph.implementations.SingleGraph;
 
 /**
@@ -136,8 +135,8 @@ public class GraphSearch {
         System.out.println("\nDEEP BREADTH ITERATOR");
         breadthFirst(lajeado);
 
-        // System.out.println("\nSMALL PATH");
-        // shorstPath(graph);
+        System.out.println("\nCAMINHO MAIS CURTO PARA CARA LOCAL");
+        shorstPath(graph);
 
     }
 
@@ -158,62 +157,30 @@ public class GraphSearch {
     }
 
     public static void shorstPath(Graph graph) {
-        graph.display(false);
+        Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "weight", "weight");
 
-        // Edge lengths are stored in an attribute called "length"
-        // The length of a path is the sum of the lengths of its edges
-        Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "length");
-
-        // Compute the shortest paths in g from A to all nodes
         dijkstra.init(graph);
         dijkstra.setSource(graph.getNode(NODES[NODE_LAJEADO]));
         dijkstra.compute();
 
-        // Print the lengths of all the shortest paths
         for (Node node : graph)
-            System.out.printf("%s->%s:%10.2f%n", dijkstra.getSource(), node,
-                    dijkstra.getPathLength(node));
+            System.out.printf("%s->%s:%6.2f%n", dijkstra.getSource(), node, dijkstra.getPathLength(node));
 
-        // Color in blue all the nodes on the shortest path form A to B
-        for (Node node : dijkstra.getPathNodes(graph.getNode(NODES[NODE_BARBOSA])))
-            node.setAttribute("ui.style", "fill-color: blue;");
 
-        // Color in red all the edges in the shortest path tree
+        for (Node node : dijkstra.getPathNodes(graph.getNode(NODES[NODE_ARVOREZINHA])))
+            node.addAttribute("ui.style", "fill-color: blue;");
+
+
         for (Edge edge : dijkstra.getTreeEdges())
-            edge.setAttribute("ui.style", "fill-color: red;");
+            edge.addAttribute("ui.style", "fill-color: red;");
 
-        // Print the shortest path from A to B
-        System.out.println(dijkstra.getPath(graph.getNode(NODES[NODE_BARBOSA])));
+        
+        System.out.println("CAMINHO MAIS CURTO DE LAJEADO PARA ARVOREZINHA:\n"
+                + dijkstra.getPath(graph.getNode(NODES[NODE_ARVOREZINHA])));
 
-        // Build a list containing the nodes in the shortest path from A to B
-        // Note that nodes are added at the beginning of the list
-        // because the iterator traverses them in reverse order, from B to A
         List<Node> list1 = new ArrayList<Node>();
-        for (Node node : dijkstra.getPathNodes(graph.getNode(NODES[NODE_BARBOSA])))
+        for (Node node : dijkstra.getPathNodes(graph.getNode(NODES[NODE_ARVOREZINHA])))
             list1.add(0, node);
-
-        // A shorter but less efficient way to do the same thing
-        List<Node> list2 = dijkstra.getPath(graph.getNode(NODES[NODE_BARBOSA])).getNodePath();
-
-        // cleanup to save memory if solutions are no longer needed
-        dijkstra.clear();
-
-        // Now compute the shortest path from A to all the other nodes
-        // but taking the number of nodes in the path as its length
-        dijkstra = new Dijkstra(Dijkstra.Element.NODE, null, null);
-        dijkstra.init(graph);
-        dijkstra.setSource(graph.getNode("A"));
-        dijkstra.compute();
-
-        // Print the lengths of the new shortest paths
-        for (Node node : graph)
-            System.out.printf("%s->%s:%10.2f%n", dijkstra.getSource(), node,
-                    dijkstra.getPathLength(node));
-
-        // Print all the shortest paths between A and F
-        Iterator<Path> pathIterator = dijkstra.getAllPathsIterator(graph
-                .getNode("F"));
-        while (pathIterator.hasNext())
-            System.out.println(pathIterator.next());
     }
+
 }
